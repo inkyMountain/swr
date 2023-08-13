@@ -88,6 +88,20 @@ type DefinitelyTruthy<T> = false extends T
   ? never
   : T
 
+// 最原始的 useSWR hook
+/**
+ * 带着问题看源码：
+ * key 相关
+ * - key 是如何序列化的
+ * - 不同引用的对象会被看作不同的key吗
+ *
+ * 什么时候会触发一次请求
+ * - revalidateOnMount
+ * - revalidateIfStale
+ * - refreshInterval
+ * - refreshWhenHidden
+ * - refreshWhenOffline
+ */
 export const useSWRHandler = <Data = any, Error = any>(
   _key: Key,
   fetcher: Fetcher<Data> | null,

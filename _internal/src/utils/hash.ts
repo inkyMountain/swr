@@ -17,6 +17,7 @@ let counter = 0
 //
 // This is not a serialization function, and the result is not guaranteed to be
 // parsable.
+// https://github.com/shuding/stable-hash
 export const stableHash = (arg: any): string => {
   const type = typeof arg
   const constructor = arg && arg.constructor
