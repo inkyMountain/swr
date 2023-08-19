@@ -41,13 +41,19 @@ export const initCache = <Data = any>(
 
     // If there's no global state bound to the provider, create a new one with the
     // new mutate function.
+    // 类型是 key-revalidator。在一个事件发生后(比如 focus 和 reconnect)，对数据进行重新验证。
+    // revalidator 会接受一个事件参数。
     const EVENT_REVALIDATORS = {}
 
+    // internalMutate 是最为原始的 mutate 函数。
+    // 这里使用 bind 来绑定缓存提供者，让后续的 mutate 调用可以少传一个参数。
     const mutate = internalMutate.bind(UNDEFINED, provider) as ScopedMutator
     let unmount = noop
 
+    // 缓存变化的监听函数，key-callback。
     const subscriptions: Record<string, ((current: any, prev: any) => void)[]> =
       {}
+    // 向 subscriptions 中添加某个 key 的监听函数，并返回解除监听的函数。
     const subscribe = (
       key: string,
       callback: (current: any, prev: any) => void
@@ -58,6 +64,7 @@ export const initCache = <Data = any>(
       subs.push(callback)
       return () => subs.splice(subs.indexOf(callback), 1)
     }
+    // 设置某个 key 的值，并调用对应 key 的监听函数。
     const setter = (key: string, value: any, prev: any) => {
       provider.set(key, value)
       const subs = subscriptions[key]
@@ -87,6 +94,7 @@ export const initCache = <Data = any>(
           // React's state updates.
           // This avoids some unnecessary revalidations such as
           // https://github.com/vercel/swr/issues/1680.
+          // 监听鼠标的 focus 事件，并返回一个解除监听 focus 事件的函数。
           const releaseFocus = opts.initFocus(
             setTimeout.bind(
               UNDEFINED,
@@ -97,6 +105,7 @@ export const initCache = <Data = any>(
               )
             )
           )
+          // 监听重连事件，并返回一个解除监听重连事件的函数。
           const releaseReconnect = opts.initReconnect(
             setTimeout.bind(
               UNDEFINED,
@@ -107,6 +116,7 @@ export const initCache = <Data = any>(
               )
             )
           )
+          // 清理函数。解除 focus、reconnect 的监听，删除 provider 对应的全局状态。
           unmount = () => {
             releaseFocus && releaseFocus()
             releaseReconnect && releaseReconnect()
@@ -129,5 +139,6 @@ export const initCache = <Data = any>(
     return [provider, mutate, initProvider, unmount]
   }
 
+  // globalState 的 4 索引是绑定了 cache provider 的 mutate 函数。
   return [provider, (SWRGlobalState.get(provider) as GlobalState)[4]]
 }
