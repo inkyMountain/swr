@@ -108,18 +108,25 @@ export const useSWRHandler = <Data = any, Error = any>(
   config: FullConfiguration & SWRConfiguration<Data, Error>
 ) => {
   const {
+    // swr 对每个 key 对应请求的返回结果进行缓存，
+    // cache 是缓存能力的提供者。
     cache,
+    // 判断两个 key 是否相同。默认的 compare 函数，是通过 stableHash 处理两个 key 后再进行比较。
     compare,
     suspense,
+    // 指定某些 key 的默认值
     fallbackData,
     revalidateOnMount,
     revalidateIfStale,
     refreshInterval,
     refreshWhenHidden,
     refreshWhenOffline,
+
+    // 相当于内置了 laggy 中间件
     keepPreviousData
   } = config
 
+  // 以 cache (缓存提供者) 维度，存储全局状态。
   const [EVENT_REVALIDATORS, MUTATION, FETCH, PRELOAD] = SWRGlobalState.get(
     cache
   ) as GlobalState
@@ -583,6 +590,9 @@ export const useSWRHandler = <Data = any, Error = any>(
   })
 
   // After mounted or key changed.
+  // 当 key 变化的时候：
+  // - 触发请求，更新数据。
+  // - 重新订阅各种浏览器事件，在事件触发的时候重新请求。
   useIsomorphicLayoutEffect(() => {
     if (!key) return
 
@@ -651,6 +661,7 @@ export const useSWRHandler = <Data = any, Error = any>(
   }, [key])
 
   // Polling
+  // 每隔一段事件就重新请求数据。
   useIsomorphicLayoutEffect(() => {
     let timer: any
 
@@ -672,6 +683,7 @@ export const useSWRHandler = <Data = any, Error = any>(
     function execute() {
       // Check if it's OK to execute:
       // Only revalidate when the page is visible, online, and not errored.
+      // 只有在浏览器可见、有网络并且不处于请求错误的状态，才进行请求。
       if (
         !getCache().error &&
         (refreshWhenHidden || getConfig().isVisible()) &&
@@ -679,6 +691,7 @@ export const useSWRHandler = <Data = any, Error = any>(
       ) {
         revalidate(WITH_DEDUPE).then(next)
       } else {
+        // 否则就跳过本次请求，准备下一个请求。
         // Schedule the next interval to check again.
         next()
       }

@@ -38,6 +38,11 @@ export async function internalMutate<Data>(
   _data?: Data | Promise<Data | undefined> | MutatorCallback<Data>,
   _opts?: boolean | MutatorOptions<Data>
 ): Promise<Data | undefined>
+/**
+ * 调用 mutate，修改缓存。触发 revalidate。
+ * 调用 revalidators 进行数据验证，发送请求。
+ * 请求完成，调用 setter 更新缓存，并触发订阅这个 key 的缓存的 subscriber。订阅的组件触发 rerender。
+ */
 export async function internalMutate<Data>(
   ...args: [
     cache: Cache,

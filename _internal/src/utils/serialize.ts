@@ -4,6 +4,7 @@ import { isFunction } from './shared'
 import type { Key, Arguments } from '../types'
 
 export const serialize = (key: Key): [string, Arguments] => {
+  // 支持通过一个函数返回 key
   if (isFunction(key)) {
     try {
       key = key()

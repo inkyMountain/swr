@@ -6,6 +6,10 @@ import { BUILT_IN_MIDDLEWARE } from './middleware-preset'
 // It's tricky to pass generic types as parameters, so we just directly override
 // the types here.
 export const withArgs = <SWRType>(hook: any) => {
+  /**
+   * - 合并配置：包括默认配置、React Context配置、用户调用useSWR hook时的配置。
+   * - 应用中间件
+   */
   return function useSWRArgs(...args: any) {
     // Get the default and inherited configuration.
     // 将 context 中的 config，和 defaultConfig 合并后的配置对象(fallbackConfig)。
